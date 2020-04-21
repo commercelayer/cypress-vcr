@@ -1,6 +1,7 @@
 import _ from 'lodash'
 
 const requestsData: object[] = []
+let currentFilename: string = 'requests'
 
 type Routes = {
   method: string
@@ -25,15 +26,15 @@ type FixtureRequest = {
 
 export type SetRoutes = (params: SetRoutesParams) => void
 export type NewStubData = (alias: string | string[], filename: string) => void
-export type SaveRequests = (filename?: 'requests' | string) => void
+export type SaveRequests = (filename?: string) => void
 
 Cypress.Commands.add(
   'setRoutes',
   ({ endpoint, routes, record, filename }: SetRoutesParams) => {
     const allAlias: string[] = []
     if (!record) {
-      const file = filename || 'requests'
-      cy.fixture(file).then((requests: FixtureRequest[]) => {
+      currentFilename = filename || 'requests'
+      cy.fixture(currentFilename).then((requests: FixtureRequest[]) => {
         const firstCalls = requests.filter(({ aliasRequest }) => !aliasRequest)
         firstCalls.map(({ url, method, data, alias }) => {
           cy.route({ url, method, response: data }).as(alias)
@@ -98,20 +99,21 @@ Cypress.Commands.add('saveRequests', (filename = 'requests') => {
   cy.writeFile(path, requestsData)
 })
 
-Cypress.Commands.add('newStubData', (findAlias, filename = 'requests') => {
-  cy.fixture(filename).then((requests: FixtureRequest[]) => {
+Cypress.Commands.add('newStubData', (findAlias, filename) => {
+  const file = filename || currentFilename
+  cy.fixture(file).then((requests: FixtureRequest[]) => {
     if (_.isArray(findAlias)) {
       findAlias.map(a => {
-        const { method, data, url, alias } = requests.find(
+        const { method, data, url } = requests.find(
           ({ aliasRequest }) => aliasRequest === a
         ) as FixtureRequest
-        cy.route({ url, method, response: data }).as(alias)
+        cy.route({ url, method, response: data })
       })
     } else {
-      const { method, data, url, alias } = requests.find(
+      const { method, data, url } = requests.find(
         ({ aliasRequest }) => aliasRequest === findAlias
       ) as FixtureRequest
-      cy.route({ url, method, response: data }).as(alias)
+      cy.route({ url, method, response: data })
     }
   })
 })

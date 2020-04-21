@@ -1,6 +1,7 @@
 import _ from 'lodash'
 
 const requestsData: object[] = []
+const allAlias: string[] = []
 let currentFilename: string = 'requests'
 
 type Routes = {
@@ -31,7 +32,6 @@ export type SaveRequests = (filename?: string) => void
 Cypress.Commands.add(
   'setRoutes',
   ({ endpoint, routes, record, filename }: SetRoutesParams) => {
-    const allAlias: string[] = []
     if (!record) {
       currentFilename = filename || 'requests'
       cy.fixture(currentFilename).then((requests: FixtureRequest[]) => {

@@ -1,7 +1,15 @@
 import _ from 'lodash'
 
-const requestsData: object[] = []
-const allAlias: string[] = []
+type RequestsData = {
+  [key: string]: object[]
+}
+
+type AllAlias = {
+  [key: string]: string[]
+}
+
+const requestsData: RequestsData = {}
+const allAlias: AllAlias = {}
 let currentFilename: string = 'requests'
 
 type Routes = {
@@ -32,8 +40,14 @@ export type SaveRequests = (filename?: string) => void
 Cypress.Commands.add(
   'setRoutes',
   ({ endpoint, routes, record, filename }: SetRoutesParams) => {
+    currentFilename = filename || 'requests'
+    if (_.isEmpty(requestsData[currentFilename])) {
+      requestsData[currentFilename] = []
+    }
+    if (_.isEmpty(allAlias[currentFilename])) {
+      allAlias[currentFilename] = []
+    }
     if (!record) {
-      currentFilename = filename || 'requests'
       cy.fixture(currentFilename).then((requests: FixtureRequest[]) => {
         const firstCalls = requests.filter(({ aliasRequest }) => !aliasRequest)
         firstCalls.map(({ url, method, data, alias }) => {
@@ -48,11 +62,13 @@ Cypress.Commands.add(
         method: method,
         onResponse: ({ url: requestUrl, method, response }) => {
           const data = response.body ? response.body : {}
-          const filterAlias = allAlias.filter(a => a.search(alias) !== -1)
-          const aliasIndex = allAlias.indexOf(alias)
+          const filterAlias = allAlias[currentFilename].filter(
+            a => a.search(alias) !== -1
+          )
+          const aliasIndex = allAlias[currentFilename].indexOf(alias)
           if (_.isEmpty(filterAlias)) {
-            allAlias.push(alias)
-            requestsData.push({
+            allAlias[currentFilename].push(alias)
+            requestsData[currentFilename].push({
               url: requestUrl,
               method,
               data,
@@ -61,9 +77,9 @@ Cypress.Commands.add(
             })
           }
           if (filterAlias.length === 1) {
-            const currentAlias = allAlias[aliasIndex]
-            allAlias.push(`${currentAlias}${1}`)
-            requestsData.push({
+            const currentAlias = allAlias[currentFilename][aliasIndex]
+            allAlias[currentFilename].push(`${currentAlias}${1}`)
+            requestsData[currentFilename].push({
               url: requestUrl,
               method,
               data,
@@ -79,8 +95,8 @@ Cypress.Commands.add(
               lastNumber,
               `${Number(lastNumber) + 1}`
             )
-            allAlias.push(newAlias)
-            requestsData.push({
+            allAlias[currentFilename].push(newAlias)
+            requestsData[currentFilename].push({
               url: requestUrl,
               method,
               data,
@@ -96,7 +112,7 @@ Cypress.Commands.add(
 )
 Cypress.Commands.add('saveRequests', (filename = 'requests') => {
   const path = `./cypress/fixtures/${filename}.json`
-  cy.writeFile(path, requestsData)
+  cy.writeFile(path, requestsData[filename])
 })
 
 Cypress.Commands.add('newStubData', (findAlias, filename) => {

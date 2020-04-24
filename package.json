@@ -1,7 +1,7 @@
 {
   "name": "@commercelayer/cypress-vcr",
   "description": "Record your test suite's HTTP interactions and replay them during future test runs for fast",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",

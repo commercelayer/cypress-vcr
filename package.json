@@ -7,11 +7,18 @@
   "typings": "dist/index.d.ts",
   "files": [
     "dist",
-    "src"
+    "package.json",
+    "README.md",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=10"
   },
+  "keywords": [
+    "cypress",
+    "vcr",
+    "stubbing"
+  ],
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
@@ -25,6 +32,10 @@
     "publish:minor": "npm run prepare && npm run version:minor && git push --follow-tags && npm publish --access public",
     "publish:major": "npm run prepare && npm run version:major && git push --follow-tags && npm publish --access public"
   },
+  "bugs": {
+    "url": "https://github.com/commercelayer/cypress-vcr/issues"
+  },
+  "homepage": "https://github.com/commercelayer/cypress-vcr#readme",
   "peerDependencies": {},
   "husky": {
     "hooks": {
@@ -38,9 +49,9 @@
     "trailingComma": "es5"
   },
   "author": "Alessandro Casazza",
-  "module": "dist/new.esm.js",
+  "module": "dist/cypress-vcr.esm.js",
   "devDependencies": {
-    "cypress": "^4.4.0",
+    "cypress": "^4.5.0",
     "husky": "^4.2.5",
     "tsdx": "^0.13.2",
     "tslib": "^1.11.1",

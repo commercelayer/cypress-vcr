@@ -13,7 +13,7 @@ const allAlias: AllAlias = {}
 let currentFilename: string = 'requests'
 
 type Routes = {
-  method: string
+  method: Method
   alias: string
   url: string
 }
@@ -25,9 +25,11 @@ type SetRoutesParams = {
   filename: string
 }
 
+type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
+
 type FixtureRequest = {
   url: string
-  method: string
+  method: Method
   data: object
   alias: string
   aliasRequest: string
@@ -51,17 +53,16 @@ Cypress.Commands.add(
       cy.fixture(currentFilename).then((requests: FixtureRequest[]) => {
         const firstCalls = requests.filter(({ aliasRequest }) => !aliasRequest)
         firstCalls.map(({ url, method, data, alias }) => {
-          cy.route({ url, method, response: data }).as(alias)
+          cy.intercept(method, url, { body: data }).as(alias)
         })
       })
       return
     }
     routes.map(({ url, alias, method }) => {
-      cy.route({
-        url: `${endpoint}${url}`,
-        method: method,
-        onResponse: ({ url: requestUrl, method, response }) => {
-          const data = response.body ? response.body : {}
+      cy.intercept(method, `${endpoint}${url}`, req => {
+        req.reply(res => {
+          const data = res.body ? res.body : {}
+          const requestUrl = res.url
           const filterAlias = allAlias[currentFilename].filter(
             a => a.search(alias) !== -1
           )
@@ -105,7 +106,7 @@ Cypress.Commands.add(
               relativeUrl: url,
             })
           }
-        },
+        })
       }).as(alias)
     })
   }
@@ -123,13 +124,13 @@ Cypress.Commands.add('newStubData', (findAlias, filename) => {
         const { method, data, url } = requests.find(
           ({ aliasRequest }) => aliasRequest === a
         ) as FixtureRequest
-        cy.route({ url, method, response: data })
+        cy.intercept(method, url, { body: data })
       })
     } else {
       const { method, data, url } = requests.find(
         ({ aliasRequest }) => aliasRequest === findAlias
       ) as FixtureRequest
-      cy.route({ url, method, response: data })
+      cy.intercept(method, url, { body: data })
     }
   })
 })
